@@ -17,7 +17,7 @@ import struct
 
 DEBUG = 1
 
-OSCAddress = "/1"
+OSCAddress = "/0"
 
 # ip address finder
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -28,7 +28,7 @@ localIP = socket.inet_ntoa(fcntl.ioctl(
         struct.pack('256s', ifname[:15])
     )[20:24])
 
-clientAddress = '192.168.0.153', 9999
+clientAddress = '192.168.0.168', 9999
 serverAddress = localIP, 9998
 
 ser = Serial('/dev/ttyUSB0', 9600)
@@ -125,7 +125,7 @@ def led_callback(path, tags, args, source):
 	# tags will contain 'fff'
 	# args is a OSCMessage with data
 	# source is where the message came from (in case you need to reply)
-	print ("We received", user,args[0],args[1],args[2]) 
+	#print ("We received", user,args[0],args[1],args[2], args[3]) 
 	#confirmMsg = OSCMessage()
 	#confirmMsg.setAddress(" /ledConfirmed ")
 	#confirmMsg.append(args[0])
@@ -164,27 +164,18 @@ def serialComms():
 		proxMsg = OSCMessage()
 		proxMsg.setAddress(OSCAddress)
 		proxMsg.append(proximity)
-		try:
-			columnClient.send(proxMsg)
-		except:
-			print("client unavailable")
-			pass
+		columnClient.send(proxMsg)
+
 
 try:
 	listenerThread = ColumnOSCThread(1, "ColumnListenerThread")
 	displayThread = ColumnDisplayThread(2, "LEDDisplayThread")
 	serialThread = SerialCommsThread(3, "SerialCommsThread")
-	listenerThread.daemon = True
-	displayThread.daemon = True
-	serialThread.daemon = True
 	listenerThread.start()
 	displayThread.start()
 	serialThread.start()
-	while True:
-		time.sleep(1)
-except KeyboardInterrupt:
-	print("Keyboard interrupt")
 except Exception, e:
 	print str(e)
+
 #while True:
 #	testStrip()
