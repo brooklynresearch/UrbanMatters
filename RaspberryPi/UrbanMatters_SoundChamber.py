@@ -44,9 +44,13 @@ columnClient.connect(clientAddress)
 
 # Audio player
 pygame.mixer.init()
+uniqueSound = pygame.mixer.Sound("testSound.wav")
+uniqueSound.set_volume(0)
+uniqueSound.play(-1)
+
 pygame.mixer.music.load("testSound.wav")
 pygame.mixer.music.set_volume(0)
-pygame.mixer.music.play(-1)
+#pygame.mixer.music.play(-1)
 
 
 totalPixels = 150		# Number of LEDs in Locker
@@ -153,11 +157,30 @@ def quit_callback(path, tags, args, source):
 def volume_callback(path, tags, args, source):
 	user = ''.join(path.split("/"))
 	print("We received", user, args[0])
-	pygame.mixer.music.set_volume(args[0])
+	uniqueSound.set_volume(args[0])
+	#pygame.mixer.music.set_volume(args[0])
+
+def soundfile_callback(path, tags, args, source):
+	user = ''.join(path.split("/"))
+	print("We received", user, args[0])
+	global uniqueSound
+	uniqueSound.stop()
+	uniqueSound = pygame.mixer.Sound(args[0])
+	uniqueSound.set_volume(0)
+	uniqueSound.play(-1)
+	
+def setTargetIP_callback(path, tags, args, source):
+	user = ''.join(path.split("/"))
+	print("We received", user, args[0])
+	columnClient.close()
+	clientAddress = args[0], 9999
+	columnClient.connect(clientAddress)
 
 columnServer.addMsgHandler( "/led", led_callback )
 columnServer.addMsgHandler( "/quit", quit_callback )
 columnServer.addMsgHandler( "/volume", volume_callback )
+columnServer.addMsgHandler( "/soundfile", soundfile_callback )
+columnServer.addMsgHandler( "/sendTo", setTargetIP_callback )
 
 def eventListener():
 	#clear time_out flag
