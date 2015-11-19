@@ -11,13 +11,15 @@ from dotstar import Adafruit_DotStar
 from serial import Serial
 import re
 
+import pygame
+
 import socket
 import fcntl
 import struct
 
 DEBUG = 1
 
-OSCAddress = "/1"
+OSCAddress = "/0"
 
 # ip address finder
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -39,6 +41,13 @@ run = True
 
 columnClient = OSCClient()
 columnClient.connect(clientAddress)
+
+# Audio player
+pygame.mixer.init()
+pygame.mixer.music.load("testSound.wav")
+pygame.mixer.music.set_volume(0)
+pygame.mixer.music.play(-1)
+
 
 totalPixels = 150		# Number of LEDs in Locker
 pixel = 0
@@ -125,7 +134,7 @@ def led_callback(path, tags, args, source):
 	# tags will contain 'fff'
 	# args is a OSCMessage with data
 	# source is where the message came from (in case you need to reply)
-	print ("We received", user,args[0],args[1],args[2]) 
+	# print ("We received", user,args[0],args[1],args[2]) 
 	#confirmMsg = OSCMessage()
 	#confirmMsg.setAddress(" /ledConfirmed ")
 	#confirmMsg.append(args[0])
@@ -141,8 +150,14 @@ def quit_callback(path, tags, args, source):
 	global run
 	run = False
 
+def volume_callback(path, tags, args, source):
+	user = ''.join(path.split("/"))
+	print("We received", user, args[0])
+	pygame.mixer.music.set_volume(args[0])
+
 columnServer.addMsgHandler( "/led", led_callback )
 columnServer.addMsgHandler( "/quit", quit_callback )
+columnServer.addMsgHandler( "/volume", volume_callback )
 
 def eventListener():
 	#clear time_out flag
